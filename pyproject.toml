@@ -1,0 +1,9 @@
+[project]
+name = "epec-country-sector-year"
+version = "0.1.0"
+description = "EPEC PPP project aggregates by country, sector, and year"
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.28.0",
+    "beautifulsoup4>=4.12.0",
+]
