@@ -7,7 +7,7 @@ This repository hosts a reproducible extract of the European PPP Expertise Centr
 - `data/epec_country_sector_year.metadata.json` – provenance details (download timestamp, list of filters, source URL).
 - `scripts/epec_extract.py` – scraper that reads the portal filters and queries the public JSON endpoints to regenerate the dataset.
 - `scripts/make_figures.py` – helper to build overview charts (`figures/`).
-- `scripts/bbc_figures.R` – produces BBC-styled visuals using the `bbplot` package (`figures/bbc/`).
+- `scripts/bbc_figures.R` – generates twenty BBC-styled visuals (saved in `figures/`) using the `bbplot` package.
 
 ## Reproducing the Extract
 The script depends on `requests` and `beautifulsoup4`. With `uv` (preferred) you can run:
