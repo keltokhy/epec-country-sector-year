@@ -6,12 +6,14 @@ This repository hosts a reproducible extract of the European PPP Expertise Centr
 - `data/epec_country_sector_year.csv` – tidy dataset with columns `country`, `sector`, `year`, `project_count`, `project_value_eur_millions`.
 - `data/epec_country_sector_year.metadata.json` – provenance details (download timestamp, list of filters, source URL).
 - `scripts/epec_extract.py` – scraper that reads the portal filters and queries the public JSON endpoints to regenerate the dataset.
+- `scripts/make_figures.py` – helper to build overview charts (`figures/`).
 
 ## Reproducing the Extract
 The script depends on `requests` and `beautifulsoup4`. With `uv` (preferred) you can run:
 
 ```bash
 uv run python scripts/epec_extract.py --out-csv data/epec_country_sector_year.csv --metadata data/epec_country_sector_year.metadata.json
+uv run python scripts/make_figures.py
 ```
 
 The script pulls filter values directly from the portal, iterates every country-sector combination, and calls `https://data.eib.org/epec/sector/years?year=MIN,MAX&sector=...&country=...` to retrieve the time series. Missing combinations are filled with zero counts/values. After building the cube it verifies that the summed total value equals the portal quick-stat (403 229 EUR millions ≈ 403.2 bn) before writing the files.
