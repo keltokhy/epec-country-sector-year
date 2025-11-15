@@ -14,7 +14,7 @@ The script depends on `requests` and `beautifulsoup4`. With `uv` (preferred) you
 uv run python scripts/epec_extract.py --out-csv data/epec_country_sector_year.csv --metadata data/epec_country_sector_year.metadata.json
 ```
 
-The script pulls filter values directly from the portal, iterates every country-sector combination, and calls `https://data.eib.org/epec/sector/years?year=MIN,MAX&sector=...&country=...` to retrieve the time series. Missing combinations are filled with zero counts/values.
+The script pulls filter values directly from the portal, iterates every country-sector combination, and calls `https://data.eib.org/epec/sector/years?year=MIN,MAX&sector=...&country=...` to retrieve the time series. Missing combinations are filled with zero counts/values. After building the cube it verifies that the summed total value equals the portal quick-stat (403 229 EUR millions ≈ 403.2 bn) before writing the files.
 
 ## Notes
 - Data is aggregated; the portal does not expose transaction-level records.

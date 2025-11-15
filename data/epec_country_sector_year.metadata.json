@@ -1,6 +1,6 @@
 {
   "source": "https://data.eib.org/epec/",
-  "downloaded_at_utc": "2025-11-15T21:08:30.285062+00:00",
+  "downloaded_at_utc": "2025-11-15T21:38:31.087813+00:00",
   "countries": [
     "Austria",
     "Belgium",
@@ -47,5 +47,8 @@
   "year_start": 1990,
   "year_end": 2021,
   "row_count": 9856,
-  "output_csv": "/Volumes/K3/GitHub/gti/var/data/processed/epec/epec_country_sector_year.csv"
+  "output_csv": "data/epec_country_sector_year.csv",
+  "total_projects": 1913,
+  "total_project_value_eur_millions": 403229,
+  "total_project_value_eur_bn": 403.2
 }

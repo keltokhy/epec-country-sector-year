@@ -22,6 +22,7 @@ from bs4 import BeautifulSoup
 BASE_URL = "https://data.eib.org"
 PORTAL_URL = f"{BASE_URL}/epec/"
 SECTOR_YEARS_ENDPOINT = f"{BASE_URL}/epec/sector/years"
+QUICKSTAT_ENDPOINT = f"{BASE_URL}/epec/graph/quickStat"
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_DIR = REPO_ROOT / "data"
@@ -103,6 +104,22 @@ def fetch_sector_years(
     return payload
 
 
+def fetch_reference_totals(filters: Filters) -> tuple[int, int]:
+    params = [
+        ("year", filters.min_year),
+        ("year", filters.max_year),
+        ("sector", ""),
+        ("ccountry", "all"),
+    ]
+    resp = requests.get(QUICKSTAT_ENDPOINT, params=params, timeout=60)
+    resp.raise_for_status()
+    payload = resp.json()
+    if not isinstance(payload, list) or len(payload) < 1:
+        raise RuntimeError(f"Unexpected quickStat payload: {payload}")
+    reference = payload[0]
+    return int(reference["total"]), int(reference["totalValue"])
+
+
 def iter_rows(filters: Filters) -> Iterable[dict]:
     for country in filters.countries:
         for sector in filters.sectors:
@@ -135,7 +152,14 @@ def write_csv(rows: Sequence[dict], output_path: Path) -> int:
     return len(rows)
 
 
-def write_metadata(filters: Filters, output_csv: Path, metadata_path: Path, row_count: int) -> None:
+def write_metadata(
+    filters: Filters,
+    output_csv: Path,
+    metadata_path: Path,
+    row_count: int,
+    total_projects: int,
+    total_value_millions: int,
+) -> None:
     metadata = {
         "source": PORTAL_URL,
         "downloaded_at_utc": datetime.now(timezone.utc).isoformat(),
@@ -145,6 +169,9 @@ def write_metadata(filters: Filters, output_csv: Path, metadata_path: Path, row_
         "year_end": filters.max_year,
         "row_count": row_count,
         "output_csv": str(output_csv),
+        "total_projects": total_projects,
+        "total_project_value_eur_millions": total_value_millions,
+        "total_project_value_eur_bn": round(total_value_millions / 1000, 1),
     }
     with metadata_path.open("w", encoding="utf-8") as fh:
         json.dump(metadata, fh, indent=2)
@@ -172,8 +199,27 @@ def main(argv: Sequence[str] | None = None) -> None:
     html = fetch_portal_html()
     filters = extract_filters(html)
     rows = list(iter_rows(filters))
+    quickstat_total_projects, quickstat_total_value = fetch_reference_totals(filters)
+    summed_projects = sum(row["project_count"] for row in rows)
+    summed_value = round(sum(row["project_value_eur_millions"] for row in rows))
+    if summed_value != quickstat_total_value:
+        raise RuntimeError(
+            f"Total project value mismatch: summed rows={summed_value} "
+            f"vs quickStat={quickstat_total_value}"
+        )
+    if summed_projects < quickstat_total_projects:
+        raise RuntimeError(
+            f"Total project count {summed_projects} is below quickStat {quickstat_total_projects}"
+        )
     row_count = write_csv(rows, args.out_csv)
-    write_metadata(filters, args.out_csv, args.metadata, row_count)
+    write_metadata(
+        filters,
+        args.out_csv,
+        args.metadata,
+        row_count,
+        summed_projects,
+        summed_value,
+    )
     print(f"Wrote {row_count} rows to {args.out_csv}")
 
 
